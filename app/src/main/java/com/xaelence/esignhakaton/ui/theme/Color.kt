@@ -2,7 +2,8 @@ package com.xaelence.esignhakaton.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple200 = Color(0xFFBB86FC)
-val Purple500 = Color(0xFF6200EE)
-val Purple700 = Color(0xFF3700B3)
-val Teal200 = Color(0xFF03DAC5)
+val DeepBlue = Color(0xFF161512)
+val DarkBlack = Color(0xFF294E94)
+val DarkGray = Color(0xFF616E78)
+val Gray = Color(0xFFBFC9CA)
+val White = Color(0xFFF6F7F4)
