@@ -11,11 +11,13 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.xaelence.esignhakaton.presentation.screen.navigation.main_navigation_graph.MainNavigationGraph
 import dagger.hilt.android.AndroidEntryPoint
+import java.security.Security
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             val navController = rememberNavController()
             Scaffold(
