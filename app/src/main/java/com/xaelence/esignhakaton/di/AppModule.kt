@@ -1,16 +1,14 @@
 package com.xaelence.esignhakaton.di
-import android.content.Context
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-import com.xaelence.esignhakaton.R
+
+import com.xaelence.esignhakaton.domain.use_case.ESignUseCases
+import com.xaelence.esignhakaton.domain.use_case.SignDocument
+import com.xaelence.esignhakaton.domain.use_case.VerifyDocument
+import com.xaelence.esignhakaton.domain.utils.KeyManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.io.File
 import javax.inject.Singleton
 
 @Module
@@ -19,10 +17,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseInstance(): FirebaseAuth = Firebase.auth
+    fun provideESignUseCases(keyManager: KeyManager): ESignUseCases = ESignUseCases(
+        SignDocument(),
+        VerifyDocument()
+    )
 
     @Provides
     @Singleton
-    fun provideFirebaseDatabase(): FirebaseDatabase = Firebase.database
+    fun provideKeyManager() =
+        KeyManager()
 
+    @Provides
+    @Singleton
+    fun provideKeyStoreFile(): File = File("secret.p12")
 }

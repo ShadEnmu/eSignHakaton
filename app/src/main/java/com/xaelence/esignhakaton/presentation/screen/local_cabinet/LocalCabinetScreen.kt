@@ -40,15 +40,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.xaelence.esignhakaton.R
+import com.xaelence.esignhakaton.presentation.screen.items.CustomAlertDialog
 import com.xaelence.esignhakaton.ui.theme.DeepBlue
 import com.xaelence.esignhakaton.ui.theme.LightGray
 import com.xaelence.esignhakaton.ui.theme.LightPurple
 import com.xaelence.esignhakaton.ui.theme.White
 
 @Composable
-fun LocalCabinetScreen() {
-    val isDialogShowed = remember {
+fun LocalCabinetScreen(
+    viewModel: LocalCabinetViewModel = hiltViewModel()
+) {
+    val isPrivateKeyDialogShowed = remember {
+        mutableStateOf(false)
+    }
+    val isPublicKeyDialogShowed = remember {
         mutableStateOf(false)
     }
     Column(
@@ -122,7 +129,7 @@ fun LocalCabinetScreen() {
                     backgroundColor = LightPurple,
                     modifier = Modifier
                         .size(80.dp)
-                        .clickable { isDialogShowed.value = true },
+                        .clickable { isPublicKeyDialogShowed.value = true },
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
@@ -142,7 +149,7 @@ fun LocalCabinetScreen() {
                     backgroundColor = LightPurple,
                     modifier = Modifier
                         .size(80.dp)
-                        .clickable { isDialogShowed.value = true },
+                        .clickable { isPrivateKeyDialogShowed.value = true },
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Column(
@@ -186,13 +193,31 @@ fun LocalCabinetScreen() {
                 }
             }
         }
+        if (isPublicKeyDialogShowed.value) {
+            CustomAlertDialog(
+                key = viewModel._state.value.publicKey.toString(),
+                iconId = R.drawable.ic_certificate_key,
+                onClickDismiss = { isPublicKeyDialogShowed.value = false },
+                onClickGenerate = {
+                    viewModel.onEvent(LocalCabinetEvent.GenerateKeys)
+                    isPublicKeyDialogShowed.value = false
+                },
+                isKeyGenerated = viewModel._state.value.publicKey != null
+            )
+        }
+        if (isPrivateKeyDialogShowed.value) {
+            CustomAlertDialog(
+                key = viewModel._state.value.privateKey.toString(),
+                iconId = R.drawable.ic_private_key,
+                onClickDismiss = { isPrivateKeyDialogShowed.value = false },
+                onClickGenerate = {
+                    viewModel.onEvent(LocalCabinetEvent.GenerateKeys)
+                    isPublicKeyDialogShowed.value = false
+                },
+                isKeyGenerated = viewModel._state.value.privateKey != null
+            )
+        }
     }
 
 
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LocalCabinetScreenPreview() {
-    LocalCabinetScreen()
 }

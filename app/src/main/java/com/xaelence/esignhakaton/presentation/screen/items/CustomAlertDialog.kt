@@ -4,12 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.AlertDialog
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -24,15 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.xaelence.esignhakaton.R
 import com.xaelence.esignhakaton.ui.theme.LightGray
 import com.xaelence.esignhakaton.ui.theme.LightPurple
 
@@ -40,19 +35,17 @@ import com.xaelence.esignhakaton.ui.theme.LightPurple
 @Composable
 fun CustomAlertDialog(
     onClickGenerate: () -> Unit = {},
-    isKeysGenerated: Boolean = false,
-    publicKey: String = "",
-    privateKey: String = ""
+    isKeyGenerated: Boolean = false,
+    key: String,
+    iconId: Int,
+    onClickDismiss: () -> Unit = {}
 ) {
-    val isSingleLinePublicKey = remember {
-        mutableStateOf(true)
-    }
-    val isSingleLinePrivateKey = remember {
+    val isSingleLine = remember {
         mutableStateOf(true)
     }
     Dialog(
-        onDismissRequest = { /*TODO*/ },
-        properties = DialogProperties(dismissOnBackPress = true, usePlatformDefaultWidth = false)
+        onDismissRequest = onClickDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
 
         Card(
@@ -62,7 +55,7 @@ fun CustomAlertDialog(
             backgroundColor = LightGray,
             shape = RoundedCornerShape(16.dp)
         ) {
-            if (!isKeysGenerated) {
+            if (isKeyGenerated) {
                 Column(
                     modifier = Modifier
                         .padding(vertical = 16.dp)
@@ -71,16 +64,16 @@ fun CustomAlertDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     OutlinedTextField(
-                        value = publicKey,
+                        value = key,
                         onValueChange = {},
                         modifier = Modifier.padding(horizontal = 16.dp),
                         readOnly = true,
                         leadingIcon = {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_certificate_key),
+                                painter = painterResource(iconId),
                                 contentDescription = "",
                                 modifier = Modifier.clickable {
-                                    isSingleLinePublicKey.value = false
+                                    isSingleLine.value = !isSingleLine.value
                                 })
 
                         },
@@ -88,29 +81,9 @@ fun CustomAlertDialog(
                             unfocusedBorderColor = LightPurple,
                             leadingIconColor = LightPurple
                         ),
-                        singleLine = isSingleLinePublicKey.value
+                        singleLine = isSingleLine.value
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = privateKey,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        onValueChange = {},
-                        readOnly = true,
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_private_key),
-                                contentDescription = "",
-                                modifier = Modifier.clickable {
-                                    isSingleLinePrivateKey.value = false
-                                }
-                            )
-                        },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            unfocusedBorderColor = LightPurple,
-                            leadingIconColor = LightPurple
-                        ),
-                        singleLine = isSingleLinePrivateKey.value
-                    )
+
                 }
             } else {
                 Column(
@@ -143,13 +116,4 @@ fun CustomAlertDialog(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AlertDialogPreview() {
-    CustomAlertDialog(
-        publicKey = "asdlasdlaskdpqkpqdfpkonspocasasc;q,ww;dqw,m;lfq;sm;almf;aslfnqpo",
-        privateKey = "asldla;sldma;lsmf;almwf;lam;lsfma;fm;lamq;fl"
-    )
 }

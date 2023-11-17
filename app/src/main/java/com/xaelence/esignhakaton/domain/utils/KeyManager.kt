@@ -1,48 +1,72 @@
 package com.xaelence.esignhakaton.domain.utils
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Log
+import org.conscrypt.Conscrypt
+import java.math.BigInteger
+import java.nio.charset.Charset
+import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.PublicKey
-import java.security.cert.Certificate
+import java.security.Security
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
+import java.util.Base64.Decoder
+import java.util.Date
+import javax.security.auth.x500.X500Principal
 
-class KeyManager (private val keyStoreFile: File) {
-    private val keyStore: KeyStore = KeyStore.getInstance("PKCS12")
+class KeyManager {
 
     init {
-        if (keyStoreFile.exists()) {
-            FileInputStream(keyStoreFile).use {
-                keyStore.load(it, null)
-            }
-        }
-        else {
-            keyStore.load(null, null)
-            keyStore.store(FileOutputStream(keyStoreFile), null)
-        }
+        Security.insertProviderAt(Conscrypt.newProvider(), 1)
     }
 
     fun generateKeyPair(alias: String) {
-        val keyPairGenerator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048)
-        val keyPair = keyPairGenerator.generateKeyPair()
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
 
-        val privateKey = keyPair.private
-        val publicKey = keyPair.public
-
-        // Сохранение закрытого ключа в KeyStore
-        keyStore.setKeyEntry(alias, privateKey, null, arrayOf(publicKey as Certificate))
-
-        keyStore.store(FileOutputStream(keyStoreFile), null)
+        val keyPairGenerator: KeyPairGenerator =
+            KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
+        val keyGenParameterSpec = KeyGenParameterSpec.Builder(
+            alias,
+            KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+        )
+            .setDigests(KeyProperties.DIGEST_SHA256)
+            .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
+            .setCertificateSubject(X500Principal("CN=$alias"))
+            .setCertificateSerialNumber(BigInteger.ONE)
+            .setCertificateNotBefore(Date())
+            .setCertificateNotAfter(Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000))
+            .build()
+        keyPairGenerator.initialize(keyGenParameterSpec)
+        keyPairGenerator.generateKeyPair()
     }
 
     fun getPrivateKey(alias: String): PrivateKey? {
-        return keyStore.getKey(alias, null) as? PrivateKey
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+
+        val privateKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.PrivateKeyEntry
+        return privateKeyEntry?.privateKey
     }
 
     fun getPublicKey(alias: String): PublicKey? {
-        return keyStore.getCertificate(alias) as? PublicKey
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+
+        val privateKeyEntry = keyStore.getEntry(alias, null) as? KeyStore.PrivateKeyEntry
+        val certificate = privateKeyEntry?.certificate
+
+        // Вместо парсинга открытого ключа из сертификата, используем его прямо из KeyPairGenerator
+        return certificate?.publicKey
+    }
+
+    fun isKeyExist(alias: String): Boolean {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        return keyStore.containsAlias(alias)
     }
 }
